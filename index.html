@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Learning Google GeoCode</title>
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+</head>
+<body>
+	
+	<div class="container">
+
+		<h2 class="text-center">Enter location</h2>
+		<form id="location-form">
+			<input type="text" class="form-control form-control-lg" id="location-input">
+			<br>
+			<button type="submit" class="btn btn-primary btn-block">Submit</button>
+			<br>
+		</form>
+		<div id="formatted_address" class="card-block"></div>
+		<div id="address_components" class="card-block"></div>
+		<div id="geometry_components" class="card-block"></div>
+	</div>
+	
+	<script>
+		//Get location form
+		locationForm = document.getElementById("location-form");
+
+		// Listen for submit
+		locationForm.addEventListener("submit", geoCode)
+
+		
+
+		function geoCode(e)
+		{
+			e.preventDefault();
+			var location = document.getElementById("location-input").value;
+			axios.get("https://maps.googleapis.com/maps/api/geocode/json", {
+				params: {
+					address: location,
+					key: "AIzaSyCi8mYOaPtkN0c20i9gS74MSJ-lxZNyXBI"
+				}
+			})
+			.then(function(response){
+				// Log full response
+				// LOOK AT THIS FOR THE FULL RESPONSE STRUCTURE. EVERYTHING DEPENDS ON IT
+				// console.log(response);
+
+				// Formatted address
+				var formatted_address = response.data.results[0].formatted_address
+				var formatted_address_output = `
+					<ul class="list-group">
+						<li class="list-group-item">${formatted_address}</li>
+					</ul>
+				`
+
+				// Address Components
+				var address_components = response.data.results[0].address_components;
+				var address_components_output = "<ul class='list-group'>";
+				for(var i = 0; i < address_components.length; i++)
+				{
+					address_components_output += `
+						<li class="list-group-item"><strong>${address_components[i].types[0]}</strong>: ${address_components[i].long_name}</li>
+					`
+				}
+				address_components_output += "</ul>";
+
+				// Get the geometry components
+				var geometry_components = response.data.results[0].geometry.location;
+				var lat = geometry_components.lat;
+				var lng = geometry_components.lng;
+				var geometry_components_output = `
+					<ul class="list-group">
+						<li class="list-group-item"><strong>Latitude: </strong>${lat}</li>
+						<li class="list-group-item"><strong>Latitude: </strong>${lng}</li>
+					</ul>
+				`
+
+				// Output to screen
+				document.getElementById('formatted_address').innerHTML = formatted_address_output;
+				document.getElementById('address_components').innerHTML = address_components_output
+				document.getElementById("geometry_components").innerHTML = geometry_components_output
+			})
+
+
+			// Catch the errors
+			.catch(function(error){
+				console.log(error)
+			})
+		}
+	</script>
+
+</body>
+</html>
